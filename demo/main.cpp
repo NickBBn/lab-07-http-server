@@ -8,7 +8,10 @@
 #include <memory>
 #include <string>
 #include <thread>
+#include <fstream>
+#include "suggester.hpp"
 
+/*
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
 namespace net = boost::asio;            // from <boost/asio.hpp>
@@ -17,8 +20,7 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 //------------------------------------------------------------------------------
 
 // Return a reasonable mime type based on the extension of a file.
-beast::string_view
-mime_type(beast::string_view path)
+beast::string_view mime_type(beast::string_view path)
 {
   using beast::iequals;
   auto const ext = [&path]
@@ -317,4 +319,34 @@ int main(int argc, char* argv[])
     std::cerr << "Error: " << e.what() << std::endl;
     return EXIT_FAILURE;
   }
+}
+*/
+
+std::shared_mutex suggester::_collection_mutex;
+std::unique_ptr<nlohmann::json> suggester::_collection = nullptr;
+
+[[noreturn]] void update_collection (const std::string &filename_json)
+{
+  const size_t minutes_time = 1;
+  std::ifstream file_json;
+  while(true){
+    suggester::_collection_mutex.lock();
+    suggester::_collection = nullptr;
+    suggester::_collection = std::make_unique<nlohmann::json>(nlohmann::json());
+    file_json.open(filename_json);
+    file_json >> *(suggester::_collection);
+    file_json.close();
+    suggester::_collection_mutex.unlock();
+    std::cout << suggester::_collection->dump(4);
+    std::this_thread::sleep_for(std::chrono::minutes(minutes_time));
+  }
+}
+
+int main ()
+{
+  const std::string filename("json_source.json");
+  suggester::_collection = std::make_unique<nlohmann::json>(nlohmann::json());
+  std::thread thread(update_collection, std::ref(filename));
+  thread.join();
+  return 0;
 }
