@@ -25,12 +25,12 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 // contents of the request, so the interface requires the
 // caller to pass a generic lambda for receiving the response.
 template<
-    class Body, class Allocator,
+    //class Body, class Allocator,
     class Send>
 void
 handle_request(
 [[maybe_unused]]    beast::string_view doc_root,
-    http::request<Body, http::basic_fields<Allocator>>&& req,
+    http::request<http::string_body>&& req,
     Send&& send)
 {
   // Returns a bad request response
@@ -46,23 +46,33 @@ handle_request(
         return res;
       };
 
+  bool input_valid = true;
+  std::string received_input;
+
+  try {
+    received_input = suggester::parse_request(req.body());
+  } catch (const std::runtime_error& e) {
+    std::cout << "invalid input" << std::endl;
+    input_valid = false;
+  }
 
   // Make sure we can handle the method
-  if (req.method() == http::verb::post){
+  if ((req.method() == http::verb::post) && input_valid){
     http::response<http::string_body> res{http::status::ok, req.version()};
     res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
     res.set(http::field::content_type, "application/json");
     // res.content_length(size);
     res.keep_alive(req.keep_alive());
-    res.body() = "Response\n";
+    res.body() = received_input;
     res.prepare_payload();
-    std::cout << res.body();
+    //std::cout << res.body();
     return send(std::move(res));
   }
-  else {
+  else if (!input_valid) {
+    return send(bad_request("Invalid input"));
+  } else {
     return send(bad_request("Unknown HTTP-method"));
   }
-
 }
 
 //------------------------------------------------------------------------------

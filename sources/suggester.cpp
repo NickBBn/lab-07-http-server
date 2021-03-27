@@ -7,6 +7,15 @@
 std::shared_mutex suggester::_collection_mutex;
 std::unique_ptr<nlohmann::json> suggester::_collection = nullptr;
 
+std::string suggester::parse_request(const std::string &request) {
+  nlohmann::json req = nlohmann::json::parse(request);
+  if (req.contains("input")){
+    return req["input"];
+  } else {
+    throw std::runtime_error("Invalid input");
+  }
+}
+
 [[noreturn]] void update_collection (const std::string &filename_json)
 {
   const size_t minutes_time = 1;

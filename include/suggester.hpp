@@ -12,9 +12,10 @@
 
 class suggester {
  public:
-
+  static std::string parse_request(const std::string &request);
+  static std::string suggest(const std::string &input);
   static std::unique_ptr<nlohmann::json>  _collection;
-  [[maybe_unused]] static std::shared_mutex _collection_mutex;
+  static std::shared_mutex _collection_mutex;
 };
 
 [[noreturn]] void update_collection (const std::string &filename_json);
