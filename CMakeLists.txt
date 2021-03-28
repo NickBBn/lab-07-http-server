@@ -24,7 +24,7 @@ HunterGate(
 
 
 # TODO: rename project and delete this comment
-project(suggestion)
+project(suggester)
 string(APPEND CMAKE_CXX_FLAGS " -pedantic -Werror -Wall -Wextra")
 string(APPEND CMAKE_CXX_FLAGS " -Wno-unused-command-line-argument")
 string(APPEND CMAKE_CXX_FLAGS " -Wshadow -Wnon-virtual-dtor")
@@ -39,11 +39,11 @@ find_package(GTest CONFIG REQUIRED)
 hunter_add_package(nlohmann_json)
 find_package(nlohmann_json CONFIG REQUIRED)
 
-add_library(${PROJECT_NAME} STATIC
+add_library(suggester STATIC
         # enum your files and delete this comment
         sources/suggester.cpp include/suggester.hpp)
 
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(suggester
         Beast::Beast
         Boost::filesystem
         Boost::thread
@@ -51,16 +51,29 @@ target_link_libraries(${PROJECT_NAME}
         nlohmann_json::nlohmann_json
         )
 
-add_executable(demo
-        ${CMAKE_CURRENT_SOURCE_DIR}/demo/main.cpp
+add_executable(server
+        ${CMAKE_CURRENT_SOURCE_DIR}/demo/server.cpp
         sources/suggester.cpp include/suggester.hpp)
 
-target_include_directories(${PROJECT_NAME} PUBLIC
+add_executable(client
+        ${CMAKE_CURRENT_SOURCE_DIR}/demo/client.cpp
+        sources/suggester.cpp include/suggester.hpp)
+
+target_include_directories(suggester PUBLIC
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
         "$<INSTALL_INTERFACE:include>"
         )
 
-target_link_libraries(demo ${PROJECT_NAME}
+target_link_libraries(server
+        suggester
+        Beast::Beast
+        Boost::filesystem
+        Boost::thread
+        GTest::gmock_main
+        nlohmann_json::nlohmann_json)
+
+target_link_libraries(client
+        suggester
         Beast::Beast
         Boost::filesystem
         Boost::thread
@@ -100,7 +113,7 @@ endif()
 
 include(CPackConfig.cmake)
 
-install(TARGETS ${PROJECT_NAME} demo
+install(TARGETS suggester server client
         EXPORT "${PROJECT_NAME}-targets"
         RUNTIME DESTINATION bin
         ARCHIVE DESTINATION lib

@@ -9,10 +9,14 @@
 #include <thread>
 #include <fstream>
 #include <shared_mutex>
+#include <sstream>
 
 class suggester {
  public:
   static std::string parse_request(const std::string &request);
+  static std::string request();
+  static void parse_suggest(const std::string& response_json,
+                                   std::string& suggestion);
   static std::string suggest(const std::string &input);
   static std::unique_ptr<nlohmann::json>  _collection;
   static std::shared_mutex _collection_mutex;

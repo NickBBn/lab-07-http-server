@@ -53,6 +53,28 @@ std::string suggester::suggest(const std::string &input) {
   }
 }
 
+std::string suggester::request() {
+  nlohmann::json req;
+  std::cout << "Enter a message: ";
+  std::string input;
+  std::cin >> input;
+  req["input"] = input;
+  return req.dump();
+}
+
+void suggester::parse_suggest(const std::string& response_json,
+                                     std::string& suggestion) {
+  nlohmann::json res;
+  try {
+    res = nlohmann::json::parse(response_json);
+  } catch (const nlohmann::detail::parse_error& e) {
+    throw std::runtime_error("Not json response");
+  }
+  for (const auto& elem : res["suggestions"]){
+    suggestion += elem["text"].get<std::string>() + "\n";
+  }
+}
+
 [[noreturn]] void update_collection (const std::string &filename_json)
 {
   const size_t minutes_time = 1;

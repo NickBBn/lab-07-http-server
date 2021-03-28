@@ -206,13 +206,3 @@ int main(int argc, char* argv[])
     return EXIT_FAILURE;
   }
 }
-
-/*
-int main ()
-{
-  const std::string filename("json_source.json");
-  suggester::_collection = std::make_unique<nlohmann::json>(nlohmann::json());
-  std::thread update(update_collection, std::ref(filename));
-  update.join();
-  return 0;
-}*/
