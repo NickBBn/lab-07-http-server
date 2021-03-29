@@ -1,9 +1,7 @@
-//
-// Created by nickmint on 3/19/21.
-//
+//Copyright [2021] <Copyright nickgeo.winner@gmail.com>
 
-#ifndef SUGGESTION_SUGGESTER_HPP
-#define SUGGESTION_SUGGESTER_HPP
+#ifndef INCLUDE_SUGGESTER_HPP_
+#define INCLUDE_SUGGESTER_HPP_
 #include "nlohmann/json.hpp"
 #include <iostream>
 #include <thread>
@@ -12,6 +10,8 @@
 #include <sstream>
 #include <ostream>
 #include <iomanip>
+#include <memory>
+#include <string>
 
 class suggester {
  public:
@@ -28,4 +28,4 @@ class suggester {
 
 [[noreturn]] void update_collection (const std::string &filename_json);
 
-#endif  // SUGGESTION_SUGGESTER_HPP
+#endif  // INCLUDE_SUGGESTER_HPP_

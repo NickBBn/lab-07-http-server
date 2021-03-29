@@ -1,4 +1,4 @@
-//
+//Copyright [2021] <Copyright nickgeo.winner@gmail.com>
 // Created by nickmint on 3/19/21.
 //
 
@@ -7,13 +7,13 @@
 std::shared_mutex suggester::_collection_mutex;
 std::unique_ptr<nlohmann::json> suggester::_collection = nullptr;
 
-const std::string suggestions_str = "suggestions";
-const std::string input_str = "input";
-const std::string position_str = "position";
-const std::string name_str = "name";
-const std::string id_str = "id";
-const std::string cost_str = "cost";
-const std::string text_str = "text";
+const char suggestions_str[] = "suggestions";
+const char input_str[] = "input";
+const char position_str[] = "position";
+const char name_str[] = "name";
+const char id_str[] = "id";
+const char cost_str[] = "cost";
+const char text_str[] = "text";
 
 std::string suggester::parse_request(const std::string &request) {
   nlohmann::json req;
@@ -47,11 +47,10 @@ std::string suggester::suggest(const std::string &input) {
               [](const nlohmann::json& a, const nlohmann::json& b) -> bool
               {
                 return a[cost_str] < b[cost_str];
-              }
-    );
+              });
     size_t position = 0;
-    for (auto& elem: suggestion["suggestions"]){
-      elem["position"] = position;
+    for (auto& elem : suggestion[suggestions_str]){
+      elem[position_str] = position;
       elem.erase("cost");
       ++position;
     }
@@ -89,11 +88,11 @@ void suggester::parse_suggest(const std::string& response_json,
   }
 }
 
-[[noreturn]] void update_collection (const std::string &filename_json)
+[[noreturn]] void update_collection(const std::string &filename_json)
 {
   const size_t minutes_time = 1;
   std::ifstream file_json;
-  while(true){
+  while (true){
     suggester::_collection_mutex.lock();
     suggester::_collection = nullptr;
     suggester::_collection = std::make_unique<nlohmann::json>(nlohmann::json());
