@@ -26,6 +26,6 @@ class suggester {
   static std::shared_mutex _collection_mutex;
 };
 
-[[noreturn]] void update_collection (const std::string &filename_json);
+[[noreturn]] void update_collection(const std::string &filename_json);
 
 #endif  // INCLUDE_SUGGESTER_HPP_
