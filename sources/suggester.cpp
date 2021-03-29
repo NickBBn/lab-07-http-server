@@ -79,12 +79,12 @@ void suggester::parse_suggest(const std::string& response_json,
     throw std::runtime_error("Not json response");
   }
   if (!res[suggestions_str].empty())
-    out << "Maybe you wanted to type: " << std::endl;
+    out << " Maybe you wanted to type: " << std::endl;
   else
-    out << "No suggestions for this input" << std::endl;
+    out << " No suggestions for this input" << std::endl;
   size_t count = 1;
   for (const auto& elem : res[suggestions_str]){
-    out << count << ")" << std::setw(4)  << elem[text_str] << std::endl;
+    out <<" " << count << ")" << std::setw(4)  << elem[text_str] << std::endl;
     ++count;
   }
 }
@@ -101,7 +101,6 @@ void suggester::parse_suggest(const std::string& response_json,
     file_json >> *(suggester::_collection);
     file_json.close();
     suggester::_collection_mutex.unlock();
-    std::cout << suggester::_collection->dump(4);
     std::this_thread::sleep_for(std::chrono::minutes(minutes_time));
   }
 }

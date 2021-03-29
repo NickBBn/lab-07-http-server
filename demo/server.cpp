@@ -29,6 +29,7 @@ template<
     class Send>
 void
 handle_request(
+    beast::string_view doc_root,
     http::request<http::string_body>&& req,
     Send&& send)
 {
@@ -45,8 +46,13 @@ handle_request(
         return res;
       };
 
-  bool json_error = false;
   std::string error_msg;
+  bool wrong_doc_root = false;
+  if (doc_root != req.target()) {
+    wrong_doc_root = true;
+    error_msg = " Wrong URI\n";
+  }
+  bool json_error = false;
   std::string output_to_send;
 
   try {
@@ -58,7 +64,9 @@ handle_request(
   }
 
   // Make sure we can handle the method
-  if ((req.method() == http::verb::post) && (!json_error)){
+  if ((req.method() == http::verb::post) &&
+      (!json_error) &&
+      (!wrong_doc_root)){
     http::response<http::string_body> res{http::status::ok, req.version()};
     res.set(http::field::server, BOOST_BEAST_VERSION_STRING);
     res.set(http::field::content_type, "application/json");
@@ -67,7 +75,7 @@ handle_request(
     res.prepare_payload();
     return send(std::move(res));
   }
-  else if (json_error) {
+  else if (json_error || wrong_doc_root) {
     return send(bad_request(error_msg));
   } else {
     return send(bad_request("Unknown HTTP-method"));
@@ -120,7 +128,8 @@ struct send_lambda
 
 // Handles an HTTP server connection
 void
-do_session(tcp::socket& socket)
+do_session(tcp::socket& socket,
+           std::shared_ptr<std::string const> const& doc_root)
 {
   bool close = false;
   beast::error_code ec;
@@ -142,7 +151,7 @@ do_session(tcp::socket& socket)
       return fail(ec, "read");
 
     // Send the response
-    handle_request(std::move(req), lambda);
+    handle_request(*doc_root ,std::move(req), lambda);
     if(ec)
       return fail(ec, "write");
     if(close)
@@ -172,16 +181,17 @@ int main(int argc, char* argv[])
   try
   {
     // Check command line arguments.
-    if (argc != 3)
+    if (argc != 4)
     {
       std::cerr <<
                 "Usage: http-server-sync <address> <port> <doc_root>\n" <<
                 "Example:\n" <<
-                "    http-server-sync 0.0.0.0 8080\n";
+                "    http-server-sync 0.0.0.0 8080 .\n";
       return EXIT_FAILURE;
     }
     auto const address = net::ip::make_address(argv[1]);
     auto const port = static_cast<unsigned short>(std::atoi(argv[2]));
+    auto const doc_root = std::make_shared<std::string>(argv[3]);
 
     // The io_context is required for all I/O
     net::io_context ioc{1};
@@ -197,7 +207,7 @@ int main(int argc, char* argv[])
       acceptor.accept(socket);
 
       // Launch the session, transferring ownership of the socket
-      std::thread{std::bind(&do_session,std::move(socket))}.detach();
+      std::thread{std::bind(&do_session,std::move(socket), doc_root)}.detach();
     }
   }
   catch (const std::exception& e)

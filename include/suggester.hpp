@@ -20,6 +20,8 @@ class suggester {
   static void parse_suggest(const std::string& response_json,
                                    std::ostream& out);
   static std::string suggest(const std::string &input);
+
+ public:
   static std::unique_ptr<nlohmann::json>  _collection;
   static std::shared_mutex _collection_mutex;
 };

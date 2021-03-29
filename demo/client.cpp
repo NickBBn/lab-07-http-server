@@ -68,6 +68,10 @@ int main(int argc, char** argv)
 
         // Receive the HTTP response
         http::read(stream, buffer, res);
+        if (res.result() == http::status::bad_request){
+          std::cout << res.body();
+          continue;
+        }
         // Write the message to standard out
         try {
           suggester::parse_suggest(res.body(), std::cout);
