@@ -68,12 +68,9 @@ int main(int argc, char** argv)
 
         // Receive the HTTP response
         http::read(stream, buffer, res);
-        std::string response;
         // Write the message to standard out
         try {
-          suggester::parse_suggest(res.body(), response);
-          std::cout << "Maybe you wanted to type: " << std::endl
-                    << response << std::endl;
+          suggester::parse_suggest(res.body(), std::cout);
         } catch (const std::runtime_error& e) {
           std::cout << e.what();
         }
