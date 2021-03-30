@@ -1,11 +1,9 @@
 //Copyright [2021] <Copyright nickgeo.winner@gmail.com>
-// Created by nickmint on 3/19/21.
-//
 
-#include "suggester.hpp"
+#include "suggester_server.hpp"
 
-std::shared_mutex suggester::_collection_mutex;
-std::unique_ptr<nlohmann::json> suggester::_collection = nullptr;
+std::shared_mutex suggester_server::_collection_mutex;
+std::unique_ptr<nlohmann::json> suggester_server::_collection = nullptr;
 
 const char suggestions_str[] = "suggestions";
 const char input_str[] = "input";
@@ -15,7 +13,7 @@ const char id_str[] = "id";
 const char cost_str[] = "cost";
 const char text_str[] = "text";
 
-std::string suggester::parse_request(const std::string &request) {
+std::string suggester_server::parse_request(const std::string &request) const {
   nlohmann::json req;
   try {
     req = nlohmann::json::parse(request);
@@ -29,7 +27,7 @@ std::string suggester::parse_request(const std::string &request) {
   }
 }
 
-std::string suggester::suggest(const std::string &input) {
+std::string suggester_server::suggest(const std::string &input) const {
   try {
     nlohmann::json suggestion;
     suggestion[suggestions_str] = nlohmann::json::array();
@@ -60,46 +58,18 @@ std::string suggester::suggest(const std::string &input) {
   }
 }
 
-std::string suggester::request() {
-  nlohmann::json req;
-  std::cout << "Enter a message: ";
-  std::string input;
-  std::cin >> input;
-  req[input_str] = input;
-  return req.dump();
-}
-
-void suggester::parse_suggest(const std::string& response_json,
-                                     std::ostream& out) {
-  nlohmann::json res;
-  try {
-    res = nlohmann::json::parse(response_json);
-  } catch (const nlohmann::detail::parse_error& e) {
-    throw std::runtime_error("Not json response");
-  }
-  if (!res[suggestions_str].empty())
-    out << " Maybe you wanted to type: " << std::endl;
-  else
-    out << " No suggestions for this input" << std::endl;
-  size_t count = 1;
-  for (const auto& elem : res[suggestions_str]){
-    out <<" " << count << ")" << std::setw(4)  << elem[text_str] << std::endl;
-    ++count;
-  }
-}
-
 [[noreturn]] void update_collection(const std::string &filename_json)
 {
   const size_t minutes_time = 1;
   std::ifstream file_json;
   while (true){
-    suggester::_collection_mutex.lock();
-    suggester::_collection = nullptr;
-    suggester::_collection = std::make_unique<nlohmann::json>(nlohmann::json());
+    suggester_server::_collection_mutex.lock();
+    suggester_server::_collection = nullptr;
+    suggester_server::_collection = std::make_unique<nlohmann::json>(nlohmann::json());
     file_json.open(filename_json);
-    file_json >> *(suggester::_collection);
+    file_json >> *(suggester_server::_collection);
     file_json.close();
-    suggester::_collection_mutex.unlock();
+    suggester_server::_collection_mutex.unlock();
     std::this_thread::sleep_for(std::chrono::minutes(minutes_time));
   }
 }

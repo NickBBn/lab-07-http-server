@@ -13,13 +13,10 @@
 #include <memory>
 #include <string>
 
-class suggester {
+class suggester_server {
  public:
-  static std::string parse_request(const std::string &request);
-  static std::string request();
-  static void parse_suggest(const std::string& response_json,
-                                   std::ostream& out);
-  static std::string suggest(const std::string &input);
+  std::string parse_request(const std::string &request) const;
+  std::string suggest(const std::string &input) const;
 
  public:
   static std::unique_ptr<nlohmann::json>  _collection;

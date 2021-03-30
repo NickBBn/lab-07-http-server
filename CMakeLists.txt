@@ -41,7 +41,7 @@ find_package(nlohmann_json CONFIG REQUIRED)
 
 add_library(suggester STATIC
         # enum your files and delete this comment
-        sources/suggester.cpp include/suggester.hpp)
+        sources/suggester_server.cpp include/suggester_server.hpp)
 
 target_link_libraries(suggester
         Beast::Beast
@@ -53,11 +53,7 @@ target_link_libraries(suggester
 
 add_executable(server
         ${CMAKE_CURRENT_SOURCE_DIR}/demo/server.cpp
-        sources/suggester.cpp include/suggester.hpp)
-
-add_executable(client
-        ${CMAKE_CURRENT_SOURCE_DIR}/demo/client.cpp
-        sources/suggester.cpp include/suggester.hpp)
+        sources/suggester_server.cpp include/suggester_server.hpp)
 
 target_include_directories(suggester PUBLIC
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
@@ -72,20 +68,11 @@ target_link_libraries(server
         GTest::gmock_main
         nlohmann_json::nlohmann_json)
 
-target_link_libraries(client
-        suggester
-        Beast::Beast
-        Boost::filesystem
-        Boost::thread
-        GTest::gmock_main
-        nlohmann_json::nlohmann_json)
-
-
 if(BUILD_TESTS)
   add_executable(tests
           # TODO: enum your files and delete this comment
           ${CMAKE_CURRENT_SOURCE_DIR}/tests/test.cpp
-          sources/suggester.cpp include/suggester.hpp)
+          sources/suggester_server.cpp include/suggester_server.hpp)
   target_link_libraries(tests ${PROJECT_NAME} GTest::gtest_main)
   enable_testing()
   add_test(NAME unit_tests COMMAND tests)
@@ -113,7 +100,7 @@ endif()
 
 include(CPackConfig.cmake)
 
-install(TARGETS suggester server client
+install(TARGETS suggester server
         EXPORT "${PROJECT_NAME}-targets"
         RUNTIME DESTINATION bin
         ARCHIVE DESTINATION lib

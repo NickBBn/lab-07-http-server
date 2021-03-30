@@ -1,15 +1,15 @@
+#include <boost/asio/ip/tcp.hpp>
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
-#include <boost/asio/ip/tcp.hpp>
 #include <boost/config.hpp>
 #include <cstdlib>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <thread>
-#include "suggester.hpp"
 
+#include "suggester_server.hpp"
 
 namespace beast = boost::beast;         // from <boost/beast.hpp>
 namespace http = beast::http;           // from <boost/beast/http.hpp>
@@ -24,14 +24,13 @@ using tcp = boost::asio::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 // request. The type of the response object depends on the
 // contents of the request, so the interface requires the
 // caller to pass a generic lambda for receiving the response.
-template<
-    //class Body, class Allocator,
-    class Send>
+template<class Send>
 void
 handle_request(
     beast::string_view doc_root,
     http::request<http::string_body>&& req,
-    Send&& send)
+    Send&& send,
+    const suggester_server& suggester)
 {
   // Returns a bad request response
   auto const bad_request =
@@ -56,8 +55,8 @@ handle_request(
   std::string output_to_send;
 
   try {
-    std::string received_input = suggester::parse_request(req.body());
-    output_to_send = suggester::suggest(received_input);
+    std::string received_input = suggester.parse_request(req.body());
+    output_to_send = suggester.suggest(received_input);
   } catch (const std::runtime_error& e) {
     error_msg = e.what();
     json_error = true;
@@ -131,6 +130,7 @@ void
 do_session(tcp::socket& socket,
            std::shared_ptr<std::string const> const& doc_root)
 {
+  suggester_server suggester;
   bool close = false;
   beast::error_code ec;
 
@@ -151,7 +151,7 @@ do_session(tcp::socket& socket,
       return fail(ec, "read");
 
     // Send the response
-    handle_request(*doc_root ,std::move(req), lambda);
+    handle_request(*doc_root ,std::move(req), lambda, suggester);
     if(ec)
       return fail(ec, "write");
     if(close)
@@ -175,7 +175,7 @@ do_session(tcp::socket& socket,
 int main(int argc, char* argv[])
 {
   const std::string filename("json_source.json");
-  suggester::_collection = std::make_unique<nlohmann::json>(nlohmann::json());
+  suggester_server::_collection = std::make_unique<nlohmann::json>(nlohmann::json());
   std::thread update(update_collection, std::ref(filename));
   update.detach();
   try
@@ -186,7 +186,7 @@ int main(int argc, char* argv[])
       std::cerr <<
                 "Usage: http-server-sync <address> <port> <doc_root>\n" <<
                 "Example:\n" <<
-                "    http-server-sync 0.0.0.0 8080 .\n";
+                "    server 0.0.0.0 8080 .\n";
       return EXIT_FAILURE;
     }
     auto const address = net::ip::make_address(argv[1]);
