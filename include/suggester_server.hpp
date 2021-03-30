@@ -1,7 +1,7 @@
 //Copyright [2021] <Copyright nickgeo.winner@gmail.com>
 
-#ifndef INCLUDE_SUGGESTER_HPP_
-#define INCLUDE_SUGGESTER_HPP_
+#ifndef INCLUDE_SUGGESTER_SERVER_HPP_
+#define INCLUDE_SUGGESTER_SERVER_HPP_
 #include "nlohmann/json.hpp"
 #include <iostream>
 #include <thread>
@@ -25,4 +25,4 @@ class suggester_server {
 
 [[noreturn]] void update_collection(const std::string &filename_json);
 
-#endif  // INCLUDE_SUGGESTER_HPP_
+#endif  // INCLUDE_SUGGESTER_SERVER_HPP_

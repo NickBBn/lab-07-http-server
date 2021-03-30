@@ -24,7 +24,7 @@ HunterGate(
 
 
 # TODO: rename project and delete this comment
-project(suggester)
+project(server_api)
 string(APPEND CMAKE_CXX_FLAGS " -pedantic -Werror -Wall -Wextra")
 string(APPEND CMAKE_CXX_FLAGS " -Wno-unused-command-line-argument")
 string(APPEND CMAKE_CXX_FLAGS " -Wshadow -Wnon-virtual-dtor")
@@ -39,11 +39,11 @@ find_package(GTest CONFIG REQUIRED)
 hunter_add_package(nlohmann_json)
 find_package(nlohmann_json CONFIG REQUIRED)
 
-add_library(suggester STATIC
+add_library(server_api STATIC
         # enum your files and delete this comment
         sources/suggester_server.cpp include/suggester_server.hpp)
 
-target_link_libraries(suggester
+target_link_libraries(server_api
         Beast::Beast
         Boost::filesystem
         Boost::thread
@@ -55,13 +55,13 @@ add_executable(server
         ${CMAKE_CURRENT_SOURCE_DIR}/demo/server.cpp
         sources/suggester_server.cpp include/suggester_server.hpp)
 
-target_include_directories(suggester PUBLIC
+target_include_directories(server_api PUBLIC
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
         "$<INSTALL_INTERFACE:include>"
         )
 
 target_link_libraries(server
-        suggester
+        server_api
         Beast::Beast
         Boost::filesystem
         Boost::thread
@@ -100,7 +100,7 @@ endif()
 
 include(CPackConfig.cmake)
 
-install(TARGETS suggester server
+install(TARGETS server_api server
         EXPORT "${PROJECT_NAME}-targets"
         RUNTIME DESTINATION bin
         ARCHIVE DESTINATION lib
