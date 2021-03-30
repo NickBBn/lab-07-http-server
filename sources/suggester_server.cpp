@@ -65,7 +65,8 @@ std::string suggester_server::suggest(const std::string &input) const {
   while (true){
     suggester_server::_collection_mutex.lock();
     suggester_server::_collection = nullptr;
-    suggester_server::_collection = std::make_unique<nlohmann::json>(nlohmann::json());
+    suggester_server::_collection =
+        std::make_unique<nlohmann::json>(nlohmann::json());
     file_json.open(filename_json);
     file_json >> *(suggester_server::_collection);
     file_json.close();
